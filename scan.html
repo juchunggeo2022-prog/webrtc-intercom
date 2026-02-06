@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Scanner - Intercom</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="app">
+        <div class="card scanner-card">
+            <!-- Back Button -->
+            <div class="header-actions">
+                <a href="/" class="control-btn icon-btn" aria-label="Back">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"
+                        fill="currentColor">
+                        <path d="M400-80 0-480l400-400 71 71-329 329 329 329-71 71Z" />
+                    </svg>
+                </a>
+                <h2>Scan QR Code</h2>
+            </div>
+
+            <div id="reader"></div>
+
+            <div id="result-container" style="display: none;">
+                <h3>Scanned Content:</h3>
+                <p id="result-text" class="scanned-text"></p>
+                <button id="scan-again-btn" class="primary-btn">Scan Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="node_modules/html5-qrcode/html5-qrcode.min.js"></script>
+    <script>
+        const html5QrCode = new Html5Qrcode("reader");
+        const readerDiv = document.getElementById('reader');
+        const resultContainer = document.getElementById('result-container');
+        const resultText = document.getElementById('result-text');
+        const scanAgainBtn = document.getElementById('scan-again-btn');
+
+        const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+            console.log(`Scan result: ${decodedText}`, decodedResult);
+
+            // Stop scanning
+            html5QrCode.stop().then(() => {
+                readerDiv.style.display = "none";
+                resultContainer.style.display = "block";
+                resultText.textContent = decodedText;
+
+                // Optional: Vibrate if supported
+                if (navigator.vibrate) navigator.vibrate(200);
+            }).catch(err => {
+                console.error("Failed to stop scanning", err);
+            });
+        };
+
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+        // Start scanning with rear camera
+        function startScanning() {
+            readerDiv.style.display = "block";
+            resultContainer.style.display = "none";
+
+            html5QrCode.start(
+                { facingMode: "environment" },
+                config,
+                qrCodeSuccessCallback
+            ).catch(err => {
+                console.error("Error starting scanner", err);
+                readerDiv.innerHTML = `<p style="color:var(--danger-color)">Camera Error: ${err}</p>`;
+            });
+        }
+
+        scanAgainBtn.addEventListener('click', startScanning);
+
+        // Auto-start
+        startScanning();
+    </script>
+</body>
+
+</html>

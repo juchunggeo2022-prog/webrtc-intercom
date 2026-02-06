@@ -21,6 +21,10 @@ const io = new Server(server, { cors: { origin: "*" } });
 
 app.use(express.static("."));
 
+app.get('/connect', (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
+
 // Session Store
 // Key: Token (String)
 // Value: { host: socketId, guest: socketId }

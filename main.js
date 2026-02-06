@@ -96,17 +96,30 @@ function initSocket() {
     // Session Events
     socket.on("session-created", (token) => {
         // Show Waiting Screen
-        selectionScreen.style.display = "none";
-        waitingScreen.style.display = "flex";
-        myTokenDisplay.textContent = token;
+        if (selectionScreen) selectionScreen.style.display = "none";
+        if (waitingScreen) waitingScreen.style.display = "flex";
+        if (myTokenDisplay) myTokenDisplay.textContent = token;
+
+        // Generate QR Code
+        const qrCanvas = document.getElementById("qrcode");
+        if (qrCanvas) {
+            // Updated to use specific IP and path
+            const joinUrl = `https://10.0.0.161:3000/connect?qrcode=${token}`;
+
+            QRCode.toCanvas(qrCanvas, joinUrl, { width: 200 }, function (error) {
+                if (error) console.error(error);
+                console.log('QR code generated!');
+            });
+        }
+
         updateStatus(`Waiting for peer...`);
     });
 
     socket.on("peer-joined", ({ role, peerId }) => {
         // Host sees this when Guest joins
         console.log("Peer joined:", peerId);
-        waitingScreen.style.display = "none";
-        mainInterface.style.display = "block";
+        if (waitingScreen) waitingScreen.style.display = "none";
+        if (mainInterface) mainInterface.style.display = "block";
 
         // Host initiates call automatically (or we wait for them to click? Auto is better for "Intercom")
         startCall(peerId);
@@ -116,8 +129,8 @@ function initSocket() {
     socket.on("session-joined", ({ role, peerId }) => {
         // Guest sees this when they successfully join
         console.log("Joined session with Host:", peerId);
-        selectionScreen.style.display = "none";
-        mainInterface.style.display = "block";
+        if (selectionScreen) selectionScreen.style.display = "none";
+        if (mainInterface) mainInterface.style.display = "block";
         updateStatus("Waiting for Host...");
         // Guest waits for Offer
     });
@@ -165,17 +178,46 @@ function initSocket() {
 }
 
 // UI Handlers
-createBtn.addEventListener("click", () => {
-    initSocket();
-    socket.emit("create-session");
-});
+if (createBtn) {
+    createBtn.addEventListener("click", () => {
+        initSocket();
+        socket.emit("create-session");
+    });
+}
 
-joinBtn.addEventListener("click", () => {
-    const token = tokenInput.value.trim();
-    if (!token) return alert("Enter Token");
-    initSocket();
-    socket.emit("join-session", token);
-});
+// Auto-Create from QR or generate_token.html page or Connect via Link
+const urlParams = new URLSearchParams(window.location.search);
+const isGeneratePage = window.location.pathname.endsWith("generate_token.html");
+const isConnectPage = window.location.pathname === "/connect";
+const qrcodeToken = urlParams.get("qrcode");
+
+if (urlParams.get("action") === "create" || isGeneratePage) {
+    if (urlParams.get("action") === "create") {
+        // Clear the param so refresh doesn't trigger again (optional, but good UX)
+        window.history.replaceState({}, document.title, "/");
+    }
+
+    // Slight delay to ensure UI is ready
+    setTimeout(() => {
+        initSocket();
+        socket.emit("create-session");
+    }, 500);
+} else if (isConnectPage && qrcodeToken) {
+    // Auto-Join logic for /connect?qrcode=TOKEN
+    setTimeout(() => {
+        initSocket();
+        socket.emit("join-session", qrcodeToken);
+    }, 500);
+}
+
+if (joinBtn) {
+    joinBtn.addEventListener("click", () => {
+        const token = tokenInput.value.trim();
+        if (!token) return alert("Enter Token");
+        initSocket();
+        socket.emit("join-session", token);
+    });
+}
 
 // Modal Actions
 let pendingOffer = null;
@@ -296,17 +338,11 @@ function endCall() {
 }
 
 function resetUI() {
-    // Determine where to go back to? 
-    // Usually start screen
-    selectionScreen.style.display = "flex";
-    waitingScreen.style.display = "none";
-    mainInterface.style.display = "none";
-    incomingCallModal.style.display = "none";
-    tokenInput.value = "";
-    // If socket connected, maybe disconnect or keep? 
-    // Keep socket for simplicity, but maybe reset session state on server?
-    // Token flow usually implies "One Shot".
-    // If call ends, let's keep socket but reset view.
+    if (selectionScreen) selectionScreen.style.display = "flex";
+    if (waitingScreen) waitingScreen.style.display = "none";
+    if (mainInterface) mainInterface.style.display = "none";
+    if (incomingCallModal) incomingCallModal.style.display = "none";
+    if (tokenInput) tokenInput.value = "";
 }
 
 disconnectBtn.addEventListener("click", () => {

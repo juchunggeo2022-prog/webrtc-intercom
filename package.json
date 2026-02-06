@@ -13,6 +13,8 @@
         "@aws-sdk/client-kinesis-video": "^3.984.0",
         "@aws-sdk/client-kinesis-video-signaling": "^3.984.0",
         "express": "^4.18.2",
+        "html5-qrcode": "^2.3.8",
+        "qrcode": "^1.5.4",
         "socket.io": "^4.7.4",
         "socket.io-client": "^4.7.4"
     },

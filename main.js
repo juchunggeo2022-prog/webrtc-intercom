@@ -283,6 +283,12 @@ if (urlParams.get("action") === "create" || isGeneratePage) {
 
     // Slight delay to ensure UI is ready
     setTimeout(() => {
+        const name = urlParams.get('name');
+        if (name) {
+            const targetUserEl = document.getElementById('target-user');
+            if (targetUserEl) targetUserEl.textContent = `Calling ${name}...`;
+        }
+
         initSocket();
         socket.emit("create-session");
     }, 500);
@@ -440,13 +446,54 @@ disconnectBtn.addEventListener("click", () => {
     resetUI();
 });
 
+const cameraBtn = document.getElementById("camera-btn");
+let isVideoMuted = false;
+
 muteBtn.addEventListener("click", () => {
     if (!localStream) return;
     isMuted = !isMuted;
     localStream.getAudioTracks().forEach(track => track.enabled = !isMuted);
-    muteBtn.textContent = isMuted ? "Unmute" : "Mute";
     muteBtn.classList.toggle("muted", isMuted);
+
+    // Optional: Update icon or style further if needed
+    if (isMuted) {
+        muteBtn.classList.remove("primary");
+        muteBtn.classList.add("danger"); // Red for muted
+    } else {
+        muteBtn.classList.remove("danger");
+        muteBtn.classList.add("primary"); // Blue for unmuted
+    }
 });
+
+if (cameraBtn) {
+    cameraBtn.addEventListener("click", () => {
+        if (!localStream) return;
+        isVideoMuted = !isVideoMuted;
+        localStream.getVideoTracks().forEach(track => track.enabled = !isVideoMuted);
+
+        // Update UI
+        if (isVideoMuted) {
+            cameraBtn.classList.remove("success");
+            cameraBtn.classList.add("danger"); // Red for video off
+            // Optional: Change icon to "Video Off"
+            cameraBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" height="32" viewBox="0 -960 960 960" width="32" fill="currentColor">
+                    <path d="M792-168 678-282q-10 4-21 6.5t-21 2.5q-33 0-56.5-23.5T556-353q0-10 2.5-21t6.5-21l-58-58q-16 23-23.5 49t-7.5 54q0 66 47 113t113 47q28 0 54-7.5t49-23.5l58 58 13 13-13-13ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v54l-80 80v-134H160v480h480l-80 80H160Zm320-320L190-770l56-56 580 580-56 56-290-290Zm0-240q-10-1-19.5-2t-19.5-1h-23l82 82v-79Z"/>
+                </svg>
+            `;
+        } else {
+            cameraBtn.classList.remove("danger");
+            cameraBtn.classList.add("success"); // Green for video on
+            // Restore "Video On" icon
+            cameraBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" height="32" viewBox="0 -960 960 960" width="32" fill="currentColor">
+                    <path d="M480-80q-33 0-56.5-23.5T400-160q0-33 23.5-56.5T480-240q33 0 56.5 23.5T560-160q0 33-23.5 56.5T480-80Zm0-400q-33 0-56.5-23.5T400-560q0-33 23.5-56.5T480-640q33 0 56.5 23.5T560-560q0 33-23.5 56.5T480-480Zm0-400q-33 0-56.5-23.5T400-960q0-33 23.5-56.5T480-1040q33 0 56.5 23.5T560-960q0 33-23.5 56.5T480-880Z"/> 
+                    <path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm0-80h640v-480H160v480Zm320-120q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35Z"/>
+                </svg>
+            `;
+        }
+    });
+}
 
 function updateStatus(text, green) {
     statusText.textContent = text;

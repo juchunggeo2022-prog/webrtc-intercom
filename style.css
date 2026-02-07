@@ -624,3 +624,75 @@ button {
     right: auto;
   }
 }
+
+/* Contact List Styles */
+.contacts-card {
+  height: 90vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+}
+
+.contact-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 4px;
+  /* Space for scrollbar */
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 12px;
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+
+.contact-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  background: var(--primary-color);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  margin-right: 16px;
+  color: white;
+  font-size: 1.1rem;
+}
+
+.contact-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.contact-name {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.contact-status {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.control-btn.small-btn {
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+}
+
+.control-btn.small-btn svg {
+  width: 20px;
+  height: 20px;
+}

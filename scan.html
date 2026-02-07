@@ -43,6 +43,12 @@
         const qrCodeSuccessCallback = (decodedText, decodedResult) => {
             console.log(`Scan result: ${decodedText}`, decodedResult);
 
+            // Check if it's a URL
+            if (decodedText.startsWith("https://")) {
+                window.location.href = decodedText;
+                return;
+            }
+
             // Stop scanning
             html5QrCode.stop().then(() => {
                 readerDiv.style.display = "none";

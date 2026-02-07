@@ -15,6 +15,8 @@ let localStream;
 let isConnected = false;
 let isMuted = false;
 let currentTargetId = null;
+let connectionTimeout = null;
+const TIMEOUT_DURATION = 60000; // 60 seconds
 
 // UI Elements
 const selectionScreen = document.getElementById("selection-screen");
@@ -113,9 +115,27 @@ function initSocket() {
         }
 
         updateStatus(`Waiting for peer...`);
+
+        // Start Timeout
+        if (connectionTimeout) clearTimeout(connectionTimeout);
+        connectionTimeout = setTimeout(() => {
+            updateStatus("等待時間已過", false);
+            const qrCanvas = document.getElementById("qrcode");
+
+            // Optional: Blur or hide QR
+            if (qrCanvas) qrCanvas.style.opacity = "0.2";
+
+            // Redirect/Reload after 3 seconds
+            setTimeout(() => {
+                window.location.href = '/scan.html';
+            }, 3000);
+        }, TIMEOUT_DURATION);
     });
 
     socket.on("peer-joined", ({ role, peerId }) => {
+        // Clear Timeout
+        if (connectionTimeout) clearTimeout(connectionTimeout);
+
         // Host sees this when Guest joins
         console.log("Peer joined:", peerId);
         if (waitingScreen) waitingScreen.style.display = "none";

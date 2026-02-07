@@ -1,7 +1,9 @@
 // Socket.io is loaded via script tag
 // import { io } from "socket.io-client";
 
-const SERVER_URL = `https://${window.location.hostname}:3000`;
+// Use relative URL for production (App Runner) or localhost:3000 for dev
+// If serving static files from the same server, "/" or window.location.origin works best.
+const SERVER_URL = window.location.origin;
 const ICE_SERVERS = {
     iceServers: [
         { urls: "stun:stun.l.google.com:19302" }

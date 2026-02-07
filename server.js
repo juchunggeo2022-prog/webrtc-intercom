@@ -46,6 +46,24 @@ app.get("/connect", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
+app.get("/api/get-turn-credentials", (req, res) => {
+  // Default to Google's public STUN server
+  const iceServers = [
+    { urls: "stun:stun.l.google.com:19302" }
+  ];
+
+  // If TURN credentials are provided in env vars, add them
+  if (process.env.TURN_URL && process.env.TURN_USERNAME && process.env.TURN_PASSWORD) {
+    iceServers.push({
+      urls: process.env.TURN_URL,
+      username: process.env.TURN_USERNAME,
+      credential: process.env.TURN_PASSWORD
+    });
+  }
+
+  res.json({ iceServers });
+});
+
 // Session Store
 // Key: Token (String)
 // Value: { host: socketId, guest: socketId }

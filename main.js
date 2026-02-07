@@ -4,11 +4,26 @@
 // Use relative URL for production (App Runner) or localhost:3000 for dev
 // If serving static files from the same server, "/" or window.location.origin works best.
 const SERVER_URL = window.location.origin;
-const ICE_SERVERS = {
-    iceServers: [
-        { urls: "stun:stun.l.google.com:19302" }
-    ]
-};
+const SERVER_URL = window.location.origin;
+
+// Fetch ICE Servers from backend (Secure TURN)
+async function getIceServers() {
+    try {
+        const response = await fetch(`${SERVER_URL}/api/get-turn-credentials`);
+        const data = await response.json();
+        if (data.iceServers && data.iceServers.length > 0) {
+            return { iceServers: data.iceServers };
+        }
+    } catch (e) {
+        console.error("Failed to fetch ICE servers:", e);
+    }
+    // Fallback
+    return {
+        iceServers: [
+            { urls: "stun:stun.l.google.com:19302" }
+        ]
+    };
+}
 
 // State
 let socket;
@@ -232,7 +247,7 @@ function initSocket() {
             await startMedia();
             startCallState();
 
-            peerConnection = createPeerConnection(caller);
+            peerConnection = await createPeerConnection(caller);
             await peerConnection.setRemoteDescription(new RTCSessionDescription(sdp));
             const answer = await peerConnection.createAnswer();
             await peerConnection.setLocalDescription(answer);
@@ -348,15 +363,16 @@ async function startCall(targetId) {
     await startMedia();
     startCallState();
 
-    peerConnection = createPeerConnection(targetId);
+    peerConnection = await createPeerConnection(targetId);
     const offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(offer);
 
     socket.emit("offer", { target: targetId, sdp: offer });
 }
 
-function createPeerConnection(targetId) {
-    const pc = new RTCPeerConnection(ICE_SERVERS);
+async function createPeerConnection(targetId) {
+    const iceConfig = await getIceServers();
+    const pc = new RTCPeerConnection(iceConfig);
     localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
 
     pc.onicecandidate = (event) => {

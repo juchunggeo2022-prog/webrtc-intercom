@@ -313,109 +313,220 @@ button {
 }
 
 /* Video Interface */
+/* Video Interface */
+/* Video Interface */
 .video-container {
   width: 100%;
-  aspect-ratio: 9/16;
+  height: 100vh;
   background: black;
-  border-radius: 24px;
+  position: fixed;
+  /* Use fixed to guarantee full screen */
+  top: 0;
+  left: 0;
+  z-index: 100;
+  display: block;
+  /* Default to block, rely on inner sections */
   overflow: hidden;
-  position: relative;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-  border: 4px solid var(--bg-surface);
-
-  /* Vertical Split Layout */
-  display: flex;
-  flex-direction: column;
 }
 
+#remote-video,
+#local-video {
+  position: static;
+  height: auto;
+  width: auto;
+  border: none;
+}
+
+#remote-video,
+#local-video {
+  position: static;
+  height: auto;
+  width: auto;
+  border: none;
+}
+
+
+
+/* Sketch Layout */
+.top-section {
+  width: 100%;
+  height: 55%;
+  position: relative;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.bottom-section {
+  width: 100%;
+  height: 45%;
+  display: flex;
+  flex-direction: row;
+}
+
+.local-video-wrapper {
+  flex: 1;
+  position: relative;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.controls-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  padding: 10px;
+  background: #1a1a1a;
+}
+
+.toggles-row {
+  display: flex;
+  gap: 20px;
+}
+
+/* Video Elements */
 #remote-video {
   width: 100%;
-  height: 50%;
-  /* Top Half */
+  height: 100%;
   object-fit: cover;
-  border-bottom: 2px solid var(--bg-surface);
+  display: block;
 }
 
 #local-video {
-  /* Reset absolute positioning */
-  position: relative;
   width: 100%;
-  height: 50%;
-  /* Bottom Half */
-  bottom: auto;
-  right: auto;
-
-  background: #222;
-  border-radius: 0;
+  height: 100%;
   object-fit: cover;
-  border: none;
-  border-top: 2px solid var(--bg-surface);
-  box-shadow: none;
+  display: block;
+  border-radius: 0;
+  background: #222;
 }
 
-/* Controls */
-.controls {
-  margin-top: 30px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 30px;
-  /* Space between icons */
+/* Overrides */
+.swipe-container {
+  max-width: 90%;
+  transform: scale(0.9);
+  /* Slightly smaller in this layout if needed */
 }
 
+
+
+
+/* Updated Control Buttons */
 .control-btn.icon-btn {
-  width: 70px;
-  height: 70px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  /* Circle */
   padding: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-
-  background: var(--bg-surface-2);
-  color: var(--text-primary);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.2);
+  /* Glassy */
+  backdrop-filter: blur(10px);
+  color: white;
+  border: none;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-.control-btn.icon-btn:hover {
-  transform: scale(1.1);
-  background: rgba(255, 255, 255, 0.1);
+.control-btn.icon-btn.success {
+  background: #10b981;
+  /* Green Camera */
+}
+
+.control-btn.icon-btn.primary {
+  background: #3b82f6;
+  /* Blue Mic */
+}
+
+.control-btn.icon-btn.danger {
+  background: #ef4444;
+  /* Red Hangup */
+  width: 70px;
+  height: 70px;
+  /* Slightly larger */
 }
 
 .control-btn.icon-btn:active {
   transform: scale(0.95);
 }
 
-.control-btn.success {
-  background: rgba(16, 185, 129, 0.2);
+/* Swipe Slider */
+.swipe-container {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+  border-radius: 32px;
+  overflow: hidden;
+  user-select: none;
+  touch-action: none;
+  /* Prevent scroll while swiping */
+}
+
+.swipe-text {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+  font-size: 1.1rem;
+  pointer-events: none;
+  text-transform: lowercase;
+}
+
+.swipe-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  /* Animates */
+  height: 100%;
+  background: var(--primary-color);
+  transition: width 0.1s linear;
+}
+
+.swipe-handle {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  /* Start padding */
+  width: 56px;
+  height: 56px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--primary-color);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  cursor: grab;
+  transition: transform 0.1s linear;
+}
+
+.swipe-handle:active {
+  cursor: grabbing;
+  transform: scale(0.95);
+}
+
+.swipe-container.unlocked .swipe-bg {
+  width: 100% !important;
+  transition: width 0.3s ease;
+  background: var(--success-color);
+}
+
+.swipe-container.unlocked .swipe-text {
+  content: "unlocked";
+  color: white;
+}
+
+.swipe-container.unlocked .swipe-handle {
   color: var(--success-color);
-  border-color: rgba(16, 185, 129, 0.4);
-}
-
-.control-btn.success:hover {
-  background: rgba(16, 185, 129, 0.3);
-  box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
-}
-
-.control-btn.danger {
-  background: rgba(239, 68, 68, 0.2);
-  color: var(--danger-color);
-  border-color: rgba(239, 68, 68, 0.4);
-  /* Reset grid prop */
-  grid-column: auto;
-}
-
-.control-btn.danger:hover {
-  background: rgba(239, 68, 68, 0.3);
-  box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
-}
-
-.control-btn.muted {
-  background: var(--text-secondary);
-  color: var(--bg-dark);
 }
 
 /* Scanner Styles */
@@ -504,9 +615,11 @@ button {
   }
 
   /* Reset Tablet Override for Local Video since we want split everywhere */
+  /* Reset Tablet Override for Local Video since we want split everywhere */
   #local-video {
-    width: 100%;
-    height: 50%;
+    /* height: 50%; <- This was causing the issue */
+    height: 100%;
+    /* Ensure it fills the wrapper */
     bottom: auto;
     right: auto;
   }

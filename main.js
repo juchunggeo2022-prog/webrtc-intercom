@@ -46,26 +46,90 @@ const incomingCallModal = document.getElementById("incoming-call-modal");
 const callerNameDisplay = document.getElementById("caller-name-display");
 const answerBtn = document.getElementById("answer-btn");
 const declineBtn = document.getElementById("decline-btn");
-const openDoorBtn = document.getElementById("open-door-btn"); // Defined
+// Swipe to Open Logic
+const swipeContainer = document.getElementById("swipe-container");
+const swipeHandle = document.getElementById("swipe-handle");
+const swipeBg = document.getElementById("swipe-bg");
+const swipeText = document.querySelector(".swipe-text");
 
-// Open Door Logic
-if (openDoorBtn) {
-    openDoorBtn.addEventListener("click", () => {
-        if (!isConnected || !currentTargetId) return;
-        socket.emit("open-door", { target: currentTargetId });
+if (swipeHandle && swipeContainer) {
+    let isDragging = false;
+    let startX = 0;
+    let currentX = 0;
+    let maxDrag = 0;
 
-        // Visual feedback
-        const originalText = openDoorBtn.textContent;
-        openDoorBtn.textContent = "Opening...";
-        openDoorBtn.disabled = true;
-        updateStatus("Requesting to Open Door...", true);
+    function startDrag(e) {
+        if (!isConnected || !currentTargetId) return; // Only allow when connected
+        isDragging = true;
+        startX = (e.touches ? e.touches[0].clientX : e.clientX);
 
-        setTimeout(() => {
-            updateStatus("Connected", true);
-            openDoorBtn.textContent = originalText;
-            openDoorBtn.disabled = false;
-        }, 2000);
-    });
+        // Recalculate dimensions here because they might be 0 initially if hidden
+        maxDrag = swipeContainer.clientWidth - swipeHandle.clientWidth - 8; // 8px total padding
+
+        swipeHandle.style.transition = "none";
+        swipeBg.style.transition = "none";
+    }
+
+    function moveDrag(e) {
+        if (!isDragging) return;
+        const clientX = (e.touches ? e.touches[0].clientX : e.clientX);
+        let delta = clientX - startX;
+
+        currentX = Math.max(0, Math.min(delta, maxDrag));
+
+        swipeHandle.style.transform = `translateX(${currentX}px)`;
+        swipeBg.style.width = `${currentX + (swipeHandle.clientWidth / 2)}px`;
+        swipeBg.style.opacity = Math.min(1, currentX / maxDrag);
+    }
+
+    function endDrag(e) {
+        if (!isDragging) return;
+        isDragging = false;
+
+        swipeHandle.style.transition = "transform 0.3s ease";
+        swipeBg.style.transition = "width 0.3s ease";
+
+        if (currentX > maxDrag * 0.85) {
+            // Success Trigger
+            currentX = maxDrag;
+            swipeHandle.style.transform = `translateX(${currentX}px)`;
+            swipeBg.style.width = `100%`;
+            triggerOpenDoor();
+        } else {
+            // Reset
+            currentX = 0;
+            swipeHandle.style.transform = `translateX(0px)`;
+            swipeBg.style.width = `0%`;
+        }
+    }
+
+    swipeHandle.addEventListener("mousedown", startDrag);
+    swipeHandle.addEventListener("touchstart", startDrag);
+
+    window.addEventListener("mousemove", moveDrag);
+    window.addEventListener("touchmove", moveDrag);
+
+    window.addEventListener("mouseup", endDrag);
+    window.addEventListener("touchend", endDrag);
+}
+
+function triggerOpenDoor() {
+    if (!isConnected || !currentTargetId) return;
+    socket.emit("open-door", { target: currentTargetId });
+
+    // Visual Feedback
+    swipeContainer.classList.add("unlocked");
+    const originalText = swipeText.textContent;
+    swipeText.textContent = "unlocked";
+
+    // Reset after 2 seconds
+    setTimeout(() => {
+        swipeContainer.classList.remove("unlocked");
+        swipeText.textContent = "swipe to open";
+        // Reset position
+        swipeHandle.style.transform = `translateX(0px)`;
+        swipeBg.style.width = `0%`;
+    }, 2000);
 }
 
 
@@ -317,7 +381,7 @@ async function startMedia() {
     try {
         localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: { facingMode: "user" } });
         localVideo.srcObject = localStream;
-        document.querySelector(".video-container").style.display = "flex";
+        document.querySelector(".video-container").style.display = "block";
     } catch (err) {
         console.error(err);
         alert("Camera Access Denied");
@@ -337,9 +401,9 @@ function stopMedia() {
 function startCallState() {
     isConnected = true;
     appBody.classList.add("is-connected");
-    disconnectBtn.style.display = "inline-block";
+    disconnectBtn.style.display = "flex"; // Changed from inline-block
     muteBtn.disabled = false;
-    if (openDoorBtn) openDoorBtn.disabled = false;
+    // Note: Swipe handle logic checks isConnected internally
 }
 
 function endCall() {
@@ -353,14 +417,19 @@ function endCall() {
     appBody.classList.remove("is-connected");
     disconnectBtn.style.display = "none";
     muteBtn.disabled = true;
-    if (openDoorBtn) openDoorBtn.disabled = true;
+    // Swipe handle disabled via logic check
     updateStatus("Disconnected");
 }
 
 function resetUI() {
     if (selectionScreen) selectionScreen.style.display = "flex";
     if (waitingScreen) waitingScreen.style.display = "none";
-    if (mainInterface) mainInterface.style.display = "none";
+    if (mainInterface) {
+        mainInterface.style.display = "none";
+        // Also hide the inner video container if needed, though main-interface hides it all
+        const videoContainer = mainInterface.querySelector('.video-container');
+        if (videoContainer) videoContainer.style.display = "none";
+    }
     if (incomingCallModal) incomingCallModal.style.display = "none";
     if (tokenInput) tokenInput.value = "";
 }

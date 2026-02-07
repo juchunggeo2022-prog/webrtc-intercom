@@ -42,36 +42,68 @@
   </div>
 
   <!-- Main Interface (Video) -->
+  <!-- Main Interface (Video) -->
   <div id="main-interface" style="display: none;">
     <div class="video-container" style="display: none;"> <!-- Hidden until call starts -->
-      <video id="remote-video" autoplay playsinline></video>
-      <video id="local-video" autoplay playsinline muted></video>
-    </div>
 
-    <div class="controls">
-      <!-- Mute Button -->
-      <button id="mute-btn" class="control-btn icon-btn" disabled aria-label="Mute">
-        <svg xmlns="http://www.w3.org/2000/svg" height="32" viewBox="0 -960 960 960" width="32" fill="currentColor">
-          <path
-            d="M480-400q-50 0-85-35t-35-85v-240q0-50 35-85t85-35q50 0 85 35t35 85v240q0 50-35 85t-85 35Zm0-240Zm-40 520v-123q-104-14-172-93t-68-184h80q0 83 58.5 141.5T480-320q83 0 141.5-58.5T680-520h80q0 105-68 184t-172 93v123h-80Z" />
-        </svg>
-      </button>
+      <!-- Top Section: Peer Video -->
+      <div class="top-section">
+        <video id="remote-video" autoplay playsinline></video>
+      </div>
 
-      <!-- Open Door Button -->
-      <button id="open-door-btn" class="control-btn icon-btn success" disabled aria-label="Open Door">
-        <svg xmlns="http://www.w3.org/2000/svg" height="32" viewBox="0 -960 960 960" width="32" fill="currentColor">
-          <path
-            d="M280-400v-80h240v-80H280v-240h400v334q22 3 42 12t38 23v-449H200v480h80Zm200 320q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35Zm0-80q17 0 28.5-11.5T520-200q0-17-11.5-28.5T480-240q-17 0-28.5 11.5T440-200q0 17 11.5 28.5T480-160Zm-280 80v-160h160v160H200Zm380 0q51-90 145.5-125T880-160v80q-59 0-109.5 22.5T680-80h-80Z" />
-        </svg>
-      </button>
+      <!-- Bottom Section: Local Video + Controls -->
+      <div class="bottom-section">
+        <!-- Left: Local Video -->
+        <div class="local-video-wrapper">
+          <video id="local-video" autoplay playsinline muted></video>
+        </div>
 
-      <!-- Hangup Button -->
-      <button id="disconnect-btn" class="control-btn icon-btn danger" style="display: none;" aria-label="End Call">
-        <svg xmlns="http://www.w3.org/2000/svg" height="32" viewBox="0 -960 960 960" width="32" fill="currentColor">
-          <path
-            d="M822-198 678-342l16-16q12-12 12-28t-12-28l-88-88q-12-12-28-12t-28 12l-72 72q-57-25-103-71t-70-102l72-72q12-12 12-28t-12-28l-88-88q-12-12-28-12t-28 12L130-488q-9 8-12.5 19t-.5 23q12 153 113.5 254.5T486-78q12 3 23-1t20-13l132-132 161 162q11 11 28 11t28-11q12-12 12-28t-12-28ZM396-608l-54 54q26 21 44 33t46 19l-36-106Zm166 166 106 36q-7-28-19-46t-33-44l-54 54Z" />
-        </svg>
-      </button>
+        <!-- Right: Controls -->
+        <div class="controls-area">
+          <!-- Row 1: Toggles -->
+          <div class="toggles-row">
+            <button id="camera-btn" class="control-btn icon-btn success">
+              <svg xmlns="http://www.w3.org/2000/svg" height="32" viewBox="0 -960 960 960" width="32"
+                fill="currentColor">
+                <path
+                  d="M480-80q-33 0-56.5-23.5T400-160q0-33 23.5-56.5T480-240q33 0 56.5 23.5T560-160q0 33-23.5 56.5T480-80Zm0-400q-33 0-56.5-23.5T400-560q0-33 23.5-56.5T480-640q33 0 56.5 23.5T560-560q0 33-23.5 56.5T480-480Zm0-400q-33 0-56.5-23.5T400-960q0-33 23.5-56.5T480-1040q33 0 56.5 23.5T560-960q0 33-23.5 56.5T480-880Z" />
+                <path
+                  d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm0-80h640v-480H160v480Zm320-120q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35Z" />
+              </svg>
+            </button>
+
+            <button id="mute-btn" class="control-btn icon-btn primary">
+              <svg xmlns="http://www.w3.org/2000/svg" height="32" viewBox="0 -960 960 960" width="32"
+                fill="currentColor">
+                <path
+                  d="M480-400q-50 0-85-35t-35-85v-240q0-50 35-85t85-35q50 0 85 35t35 85v240q0 50-35 85t-85 35Zm0-240Zm-40 520v-123q-104-14-172-93t-68-184h80q0 83 58.5 141.5T480-320q83 0 141.5-58.5T680-520h80q0 105-68 184t-172 93v123h-80Z" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Row 2: Slider -->
+          <div id="swipe-container" class="swipe-container">
+            <div class="swipe-text">swipe to open</div>
+            <div id="swipe-bg" class="swipe-bg"></div>
+            <div id="swipe-handle" class="swipe-handle">
+              <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"
+                fill="currentColor">
+                <path
+                  d="M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h40v-80q0-83 58.5-141.5T480-920q83 0 141.5 58.5T680-720v80h40q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240Zm0-80h480v-400H240v400Zm240-120q33 0 56.5-23.5T560-360q0-33-23.5-56.5T480-440q-33 0-56.5 23.5T400-360q0 33 23.5 56.5T480-280ZM360-640h240v-80q0-50-35-85t-85-35q-50 0-85 35t-35 85v80ZM240-160v-400 400Z" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Row 3: Hangup -->
+          <button id="disconnect-btn" class="control-btn icon-btn danger" aria-label="End Call">
+            <svg xmlns="http://www.w3.org/2000/svg" height="32" viewBox="0 -960 960 960" width="32" fill="currentColor">
+              <path
+                d="M822-198 678-342l16-16q12-12 12-28t-12-28l-88-88q-12-12-28-12t-28 12l-72 72q-57-25-103-71t-70-102l72-72q12-12 12-28t-12-28l-88-88q-12-12-28-12t-28 12L130-488q-9 8-12.5 19t-.5 23q12 153 113.5 254.5T486-78q12 3 23-1t20-13l132-132 161 162q11 11 28 11t28-11q12-12 12-28t-12-28ZM396-608l-54 54q26 21 44 33t46 19l-36-106Zm166 166 106 36q-7-28-19-46t-33-44l-54 54Z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 

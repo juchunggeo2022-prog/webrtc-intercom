@@ -1,6 +1,7 @@
 import express from "express";
-import { createServer } from "https"; // Use HTTPS
-import { readFileSync } from "fs"; // Read certs
+import { createServer as createHttpsServer } from "https";
+import { createServer as createHttpServer } from "http";
+import { readFileSync, existsSync } from "fs";
 import { Server } from "socket.io";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -10,19 +11,39 @@ const __dirname = dirname(__filename);
 
 const app = express();
 
-// Load SSL Certs
-const options = {
-  key: readFileSync("key.pem"),
-  cert: readFileSync("cert.pem")
-};
+const PORT = process.env.PORT || 3000;
+const isProduction = process.env.NODE_ENV === "production";
 
-const server = createServer(options, app);
+let server;
+
+if (isProduction) {
+  // In production (App Runner), SSL is terminated at the load balancer.
+  // The container receives plain HTTP.
+  console.log("Starting in PRODUCTION mode (HTTP)");
+  server = createHttpServer(app);
+} else {
+  // In development (Localhost), we need self-signed certs for WebRTC.
+  console.log("Starting in DEVELOPMENT mode (HTTPS)");
+
+  if (existsSync("key.pem") && existsSync("cert.pem")) {
+    const options = {
+      key: readFileSync("key.pem"),
+      cert: readFileSync("cert.pem"),
+    };
+    server = createHttpsServer(options, app);
+  } else {
+    console.warn("Warning: SSL certificates not found. WebRTC might not work locally.");
+    console.warn("Falling back to HTTP for local dev.");
+    server = createHttpServer(app);
+  }
+}
+
 const io = new Server(server, { cors: { origin: "*" } });
 
 app.use(express.static("."));
 
-app.get('/connect', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
+app.get("/connect", (req, res) => {
+  res.sendFile(__dirname + "/index.html");
 });
 
 // Session Store
@@ -56,10 +77,10 @@ io.on("connection", (socket) => {
       session.guest = socket.id;
 
       // Notify Guest they joined
-      socket.emit("session-joined", { role: 'guest', peerId: session.host });
+      socket.emit("session-joined", { role: "guest", peerId: session.host });
 
       // Notify Host that Guest joined
-      io.to(session.host).emit("peer-joined", { role: 'host', peerId: socket.id });
+      io.to(session.host).emit("peer-joined", { role: "host", peerId: socket.id });
 
       console.log(`User ${socket.id} joined session ${token}`);
     } else {
@@ -73,21 +94,21 @@ io.on("connection", (socket) => {
     // payload: { target, sdp }
     io.to(payload.target).emit("offer", {
       sdp: payload.sdp,
-      caller: socket.id
+      caller: socket.id,
     });
   });
 
   socket.on("answer", (payload) => {
     io.to(payload.target).emit("answer", {
       sdp: payload.sdp,
-      responder: socket.id
+      responder: socket.id,
     });
   });
 
   socket.on("ice-candidate", (payload) => {
     io.to(payload.target).emit("ice-candidate", {
       candidate: payload.candidate,
-      sender: socket.id
+      sender: socket.id,
     });
   });
 
@@ -121,7 +142,7 @@ io.on("connection", (socket) => {
   });
 });
 
-const PORT = 3000;
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on https://0.0.0.0:${PORT}`);
+  const protocol = isProduction ? "http" : "https";
+  console.log(`Server running on ${protocol}://0.0.0.0:${PORT}`);
 });

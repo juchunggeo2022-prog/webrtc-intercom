@@ -8,13 +8,21 @@ const SERVER_URL = window.location.origin;
 // Fetch ICE Servers from backend (Secure TURN)
 async function getIceServers() {
     try {
-        const response = await fetch(`${SERVER_URL}/api/get-turn-credentials`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
+
+        const response = await fetch(`${SERVER_URL}/api/get-turn-credentials`, {
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
         const data = await response.json();
+        console.log("Fetched ICE Servers:", data.iceServers); // Debug log
         if (data.iceServers && data.iceServers.length > 0) {
             return { iceServers: data.iceServers };
         }
     } catch (e) {
-        console.error("Failed to fetch ICE servers:", e);
+        console.error("Failed to fetch ICE servers (using default):", e);
     }
     // Fallback
     return {

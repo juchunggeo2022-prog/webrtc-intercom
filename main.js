@@ -257,7 +257,6 @@ function initSocket() {
             peerConnection = await createPeerConnection(caller);
             await peerConnection.setRemoteDescription(new RTCSessionDescription(sdp));
             const answer = await peerConnection.createAnswer();
-            answer.sdp = setBandwidth(answer.sdp, 500); // Limit to 500kbps
             await peerConnection.setLocalDescription(answer);
 
             socket.emit("answer", { target: caller, sdp: answer });
@@ -372,42 +371,14 @@ async function startCall(targetId) {
     startCallState();
 
     peerConnection = await createPeerConnection(targetId);
-    // Limit bandwidth to 500kbps to avoid WiFi congestion
-    const offer = await pc.createOffer();
-    offer.sdp = setBandwidth(offer.sdp, 500);
-    await pc.setLocalDescription(offer);
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
 
     socket.emit("offer", { target: targetId, sdp: offer });
 }
 
 // Helper to limit bandwidth in SDP
-function setBandwidth(sdp, bitrate) {
-    const modifier = 'b=AS:' + bitrate;
-    const lines = sdp.split('\n');
-    let newLines = [];
-    let processingVideo = false;
 
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        if (line.startsWith('m=video')) {
-            processingVideo = true;
-        }
-        if (line.startsWith('m=audio')) {
-            processingVideo = false;
-        }
-
-        newLines.push(line);
-
-        if (processingVideo && (line.startsWith('c=') || line.startsWith('a=rtcp-mux'))) {
-            // Append bandwidth line after connection or rtcp-mux
-            newLines.push(modifier + '\r');
-        }
-    }
-    // Fallback: if not added, we can try regex replacement or just return joined lines 
-    // But since the loop logic above is a bit complex to get perfect insertion point 
-    // Let's use a simpler, more robust regex replacement that works for Chrome/Safari
-    return sdp.replace(/m=video (.*)\r\n/g, "m=video $1\r\nb=AS:" + bitrate + "\r\n");
-}
 
 async function createPeerConnection(targetId) {
     const iceConfig = await getIceServers();

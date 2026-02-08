@@ -4,7 +4,6 @@
 // Use relative URL for production (App Runner) or localhost:3000 for dev
 // If serving static files from the same server, "/" or window.location.origin works best.
 const SERVER_URL = window.location.origin;
-const SERVER_URL = window.location.origin;
 
 // Fetch ICE Servers from backend (Secure TURN)
 async function getIceServers() {
@@ -187,7 +186,7 @@ function initSocket() {
         const qrCanvas = document.getElementById("qrcode");
         if (qrCanvas) {
             // Updated to use specific IP and path
-            const joinUrl = `https://10.0.0.161:3000/connect?qrcode=${token}`;
+            const joinUrl = `${window.location.origin}/connect?qrcode=${token}`;
 
             QRCode.toCanvas(qrCanvas, joinUrl, { width: 200 }, function (error) {
                 if (error) console.error(error);
@@ -195,7 +194,7 @@ function initSocket() {
             });
         }
 
-        updateStatus(`Waiting for peer...`);
+        updateStatus(`Waiting for peer...`, true);
 
         // Start Timeout
         if (connectionTimeout) clearTimeout(connectionTimeout);

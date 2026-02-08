@@ -410,7 +410,15 @@ async function createPeerConnection(targetId) {
 // Media
 async function startMedia() {
     try {
-        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: { facingMode: "user" } });
+        localStream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: {
+                facingMode: "user",
+                width: { ideal: 640 },
+                height: { ideal: 480 },
+                frameRate: { ideal: 10, max: 10 }
+            }
+        });
         localVideo.srcObject = localStream;
         document.querySelector(".video-container").style.display = "block";
     } catch (err) {

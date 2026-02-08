@@ -382,6 +382,10 @@ async function startCall(targetId) {
 
 async function createPeerConnection(targetId) {
     const iceConfig = await getIceServers();
+    // Force allow all candidates (LAN + WAN)
+    iceConfig.iceTransportPolicy = 'all';
+    iceConfig.iceCandidatePoolSize = 10;
+
     const pc = new RTCPeerConnection(iceConfig);
     localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
 
@@ -402,6 +406,18 @@ async function createPeerConnection(targetId) {
         console.log("Connection State:", pc.connectionState);
         if (pc.connectionState === 'connected') {
             updateStatus("Connected", true);
+
+            // Log Connection Type (P2P or Relay)
+            pc.getStats().then(stats => {
+                stats.forEach(report => {
+                    if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+                        console.log(`Connected via: ${report.localCandidateId} <-> ${report.remoteCandidateId}`);
+                        // We can't easily see the candidate type here without looking up the candidate ID
+                        // But usually 'local-candidate' stats have the 'candidateType'
+                    }
+                });
+            });
+
         } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
             endCall();
             resetUI();

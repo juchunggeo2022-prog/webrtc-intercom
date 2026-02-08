@@ -54,8 +54,12 @@ app.get("/api/get-turn-credentials", (req, res) => {
 
   // If TURN credentials are provided in env vars, add them
   if (process.env.TURN_URL && process.env.TURN_USERNAME && process.env.TURN_PASSWORD) {
+    let turnUrl = process.env.TURN_URL;
+    if (!turnUrl.startsWith("turn:") && !turnUrl.startsWith("turns:")) {
+      turnUrl = "turn:" + turnUrl;
+    }
     iceServers.push({
-      urls: process.env.TURN_URL,
+      urls: turnUrl,
       username: process.env.TURN_USERNAME,
       credential: process.env.TURN_PASSWORD
     });

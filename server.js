@@ -93,8 +93,10 @@ io.on("connection", (socket) => {
     const session = sessions.get(token);
     if (session) {
       if (session.guest) {
-        socket.emit("error", "Session is full");
-        return;
+        // Optimization: Kick old guest (e.g. handling page refresh race condition)
+        io.to(session.guest).emit("error", "Another device connected. You have been disconnected.");
+        // We don't return here; we overwrite session.guest
+        console.log(`Session ${token} guest overridden: ${session.guest} -> ${socket.id}`);
       }
       session.guest = socket.id;
 
@@ -111,7 +113,6 @@ io.on("connection", (socket) => {
   });
 
   // --- Signaling (Forwarding) ---
-
   socket.on("offer", (payload) => {
     // payload: { target, sdp }
     io.to(payload.target).emit("offer", {
@@ -149,16 +150,20 @@ io.on("connection", (socket) => {
   // --- Disconnect ---
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
-    // Find and cleanup sessions
     for (const [token, session] of sessions.entries()) {
-      if (session.host === socket.id || session.guest === socket.id) {
-        const peerId = session.host === socket.id ? session.guest : session.host;
-        if (peerId) {
-          io.to(peerId).emit("hangup", { sender: socket.id }); // Notify peer
-          io.to(peerId).emit("peer-disconnected");
+      if (session.host === socket.id) {
+        // Host left -> Destroy Session
+        if (session.guest) {
+          io.to(session.guest).emit("error", "Host disconnected");
+          io.to(session.guest).emit("peer-disconnected");
         }
         sessions.delete(token);
-        console.log(`Session ${token} destroyed`);
+        console.log(`Session ${token} destroyed (Host left)`);
+      } else if (session.guest === socket.id) {
+        // Guest left -> Clear Guest slot, Notify Host
+        session.guest = null;
+        io.to(session.host).emit("peer-disconnected");
+        console.log(`Session ${token} guest left`);
       }
     }
   });

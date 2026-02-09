@@ -19,7 +19,7 @@ async function getIceServers() {
         clearTimeout(timeoutId);
 
         const data = await response.json();
-        console.log("Fetched ICE Servers:", data.iceServers); // Debug log
+        console.log("Fetched ICE Servers:", JSON.stringify(data.iceServers, null, 2)); // Detailed Log
         if (data.iceServers && data.iceServers.length > 0) {
             return { iceServers: data.iceServers };
         }

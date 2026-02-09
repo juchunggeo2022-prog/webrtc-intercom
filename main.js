@@ -437,7 +437,14 @@ async function createPeerConnection(targetId) {
     localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
 
     pc.onicecandidate = (event) => {
-        if (event.candidate) socket.emit("ice-candidate", { target: targetId, candidate: event.candidate });
+        if (event.candidate) {
+            socket.emit("ice-candidate", { target: targetId, candidate: event.candidate });
+            console.log("Local Candidate Type:", event.candidate.type, event.candidate.address);
+        }
+    };
+
+    pc.onicecandidateerror = (event) => {
+        console.error("ICE Candidate Error:", event.errorCode, event.errorText, event.url);
     };
 
     pc.ontrack = (event) => {

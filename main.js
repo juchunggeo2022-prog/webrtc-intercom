@@ -204,10 +204,26 @@ function initSocket() {
 
         updateStatus(`Waiting for peer...`, true);
 
-        // Start Timeout
+        // Start Countdown Timer
+        const countdownEl = document.getElementById("countdown-timer");
+        let timeLeft = TIMEOUT_DURATION / 1000;
+
         if (connectionTimeout) clearTimeout(connectionTimeout);
+        if (window.countdownInterval) clearInterval(window.countdownInterval);
+
+        if (countdownEl) countdownEl.textContent = `Session expires in ${timeLeft}s`;
+
+        window.countdownInterval = setInterval(() => {
+            timeLeft--;
+            if (countdownEl) countdownEl.textContent = `Session expires in ${timeLeft}s`;
+            if (timeLeft <= 0) clearInterval(window.countdownInterval);
+        }, 1000);
+
         connectionTimeout = setTimeout(() => {
+            clearInterval(window.countdownInterval);
+            if (countdownEl) countdownEl.textContent = "Session Expired";
             updateStatus("等待時間已過", false);
+
             const qrCanvas = document.getElementById("qrcode");
 
             // Optional: Blur or hide QR
@@ -289,6 +305,18 @@ function initSocket() {
 if (createBtn) {
     createBtn.addEventListener("click", () => {
         window.location.href = "/generate_token.html";
+    });
+}
+
+const cancelBtn = document.getElementById("cancel-btn");
+if (cancelBtn) {
+    cancelBtn.addEventListener("click", () => {
+        // Clear timers
+        if (window.countdownInterval) clearInterval(window.countdownInterval);
+        if (connectionTimeout) clearTimeout(connectionTimeout);
+
+        // Go back to main page
+        window.location.href = "/";
     });
 }
 

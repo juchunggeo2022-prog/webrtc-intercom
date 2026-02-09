@@ -42,32 +42,32 @@ const io = new Server(server, { cors: { origin: "*" } });
 
 app.use(express.static("."));
 
+import os from "os";
+
 app.get("/connect", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
-import os from "os";
+// app.get("/api/get-turn-credentials", ... starts here
+// Default to Google's public STUN server
+const iceServers = [
+  { urls: "stun:stun.l.google.com:19302" }
+];
 
-app.get("/api/get-turn-credentials", (req, res) => {
-  // Default to Google's public STUN server
-  const iceServers = [
-    { urls: "stun:stun.l.google.com:19302" }
-  ];
-
-  // If TURN credentials are provided in env vars, add them
-  if (process.env.TURN_URL && process.env.TURN_USERNAME && process.env.TURN_PASSWORD) {
-    let turnUrl = process.env.TURN_URL;
-    if (!turnUrl.startsWith("turn:") && !turnUrl.startsWith("turns:")) {
-      turnUrl = "turn:" + turnUrl;
-    }
-    iceServers.push({
-      urls: turnUrl,
-      username: process.env.TURN_USERNAME,
-      credential: process.env.TURN_PASSWORD
-    });
+// If TURN credentials are provided in env vars, add them
+if (process.env.TURN_URL && process.env.TURN_USERNAME && process.env.TURN_PASSWORD) {
+  let turnUrl = process.env.TURN_URL;
+  if (!turnUrl.startsWith("turn:") && !turnUrl.startsWith("turns:")) {
+    turnUrl = "turn:" + turnUrl;
   }
+  iceServers.push({
+    urls: turnUrl,
+    username: process.env.TURN_USERNAME,
+    credential: process.env.TURN_PASSWORD
+  });
+}
 
-  res.json({ iceServers });
+res.json({ iceServers });
 });
 
 app.get("/api/network-info", (req, res) => {

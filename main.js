@@ -11,7 +11,9 @@ async function getIceServers() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
 
-        const response = await fetch(`${SERVER_URL}/api/get-turn-credentials`, {
+        const fetchUrl = `${SERVER_URL}/api/get-turn-credentials`;
+        console.log("Fetching ICE Servers from:", fetchUrl);
+        const response = await fetch(fetchUrl, {
             signal: controller.signal
         });
         clearTimeout(timeoutId);

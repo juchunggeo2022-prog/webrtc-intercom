@@ -46,6 +46,8 @@ app.get("/connect", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
+import os from "os";
+
 app.get("/api/get-turn-credentials", (req, res) => {
   // Default to Google's public STUN server
   const iceServers = [
@@ -66,6 +68,27 @@ app.get("/api/get-turn-credentials", (req, res) => {
   }
 
   res.json({ iceServers });
+});
+
+app.get("/api/network-info", (req, res) => {
+  const interfaces = os.networkInterfaces();
+  let lanIp = "localhost";
+
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      // Skip internal (i.e. 127.0.0.1) and non-IPv4 addresses
+      if ("IPv4" !== iface.family || iface.internal) {
+        continue;
+      }
+      // Pick the first one
+      lanIp = iface.address;
+      break;
+    }
+    if (lanIp !== "localhost") break;
+  }
+
+  res.json({ ip: lanIp, protocol: isProduction ? "https" : "https" });
+  // Dev uses https too in our setup
 });
 
 // Session Store

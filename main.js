@@ -191,15 +191,33 @@ function initSocket() {
         if (myTokenDisplay) myTokenDisplay.textContent = token;
 
         // Generate QR Code
+        // Generate QR Code
         const qrCanvas = document.getElementById("qrcode");
         if (qrCanvas) {
-            // Updated to use specific IP and path
-            const joinUrl = `${window.location.origin}/connect?qrcode=${token}`;
+            (async () => {
+                let baseUrl = window.location.origin;
 
-            QRCode.toCanvas(qrCanvas, joinUrl, { width: 200 }, function (error) {
-                if (error) console.error(error);
-                console.log('QR code generated!');
-            });
+                // If running locally, try to get the actual LAN IP from server
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    try {
+                        const res = await fetch('/api/network-info');
+                        const data = await res.json();
+                        if (data.ip && data.ip !== 'localhost') {
+                            baseUrl = `${data.protocol}://${data.ip}:${window.location.port}`;
+                            console.log("Using LAN IP for QR Code:", baseUrl);
+                        }
+                    } catch (e) {
+                        console.error("Failed to fetch network info:", e);
+                    }
+                }
+
+                const joinUrl = `${baseUrl}/connect?qrcode=${token}`;
+
+                QRCode.toCanvas(qrCanvas, joinUrl, { width: 150, margin: 2 }, function (error) {
+                    if (error) console.error(error);
+                    console.log('QR code generated!');
+                });
+            })();
         }
 
         updateStatus(`Waiting for peer...`, true);

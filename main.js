@@ -288,8 +288,7 @@ function initSocket() {
 // UI Handlers
 if (createBtn) {
     createBtn.addEventListener("click", () => {
-        initSocket();
-        socket.emit("create-session");
+        window.location.href = "/generate_token.html";
     });
 }
 

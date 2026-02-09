@@ -9,7 +9,7 @@ const SERVER_URL = window.location.origin;
 async function getIceServers() {
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
         const fetchUrl = `${SERVER_URL}/api/get-turn-credentials`;
         console.log("Fetching ICE Servers from:", fetchUrl);

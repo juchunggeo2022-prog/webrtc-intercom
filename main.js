@@ -215,7 +215,7 @@ function initSocket() {
 
             // Redirect/Reload after 3 seconds
             setTimeout(() => {
-                window.location.href = '/scan.html';
+                window.location.href = '/';
             }, 3000);
         }, TIMEOUT_DURATION);
     });
